@@ -1,411 +1,747 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pattern Desk — Company-wise DSA Prep</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-
-<div class="auth-gate" id="authGate">
-  <div class="auth-card">
-    <div class="brand auth-brand"><div class="mark">&lt;/&gt;</div><div class="name">Pattern Desk</div></div>
-    <h1 id="authTitle">Welcome back</h1>
-    <p id="authSubtitle">Sign in to keep your preparation data attached to your account.</p>
-    <form id="loginForm" class="auth-form">
-      <label>Username<input id="loginUsername" autocomplete="username" required pattern="[A-Za-z0-9_.-]{3,32}"></label>
-      <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
-      <button class="btn btn-primary" type="submit">Sign in</button>
-    </form>
-    <form id="registerForm" class="auth-form" style="display:none">
-      <label>Username<input id="registerUsername" autocomplete="username" required pattern="[A-Za-z0-9_.-]{3,32}"></label>
-      <label>Password<input id="registerPassword" type="password" autocomplete="new-password" minlength="8" required></label>
-      <button class="btn btn-primary" type="submit">Create account</button>
-    </form>
-    <button id="authToggle" class="auth-toggle" type="button">Need an account? Create one</button>
-    <div id="authMessage" class="auth-message" role="alert"></div>
-  </div>
-</div>
-  
-<div class="layout-wrapper">
-  <!-- SIDEBAR NAVIGATION -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="brand">
-        <div class="mark">&lt;/&gt;</div>
-        <div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leetcode Tracker — DSA Prep</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="auth-gate" id="authGate">
+      <div class="auth-card">
+        <div class="brand auth-brand">
+          <div class="mark">&lt;/&gt;</div>
           <div class="name">Pattern Desk</div>
         </div>
+        <h1 id="authTitle">Welcome back</h1>
+        <p id="authSubtitle">
+          Sign in to keep your preparation data attached to your account.
+        </p>
+        <form id="loginForm" class="auth-form">
+          <label
+            >Username<input
+              id="loginUsername"
+              autocomplete="username"
+              required
+              pattern="[A-Za-z0-9_.-]{3,32}"
+          /></label>
+          <label
+            >Password<input
+              id="loginPassword"
+              type="password"
+              autocomplete="current-password"
+              required
+          /></label>
+          <button class="btn btn-primary" type="submit">Sign in</button>
+        </form>
+        <form id="registerForm" class="auth-form" style="display: none">
+          <label
+            >Username<input
+              id="registerUsername"
+              autocomplete="username"
+              required
+              pattern="[A-Za-z0-9_.-]{3,32}"
+          /></label>
+          <label
+            >Password<input
+              id="registerPassword"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              required
+          /></label>
+          <button class="btn btn-primary" type="submit">Create account</button>
+        </form>
+        <button id="authToggle" class="auth-toggle" type="button">
+          Need an account? Create one
+        </button>
+        <div id="authMessage" class="auth-message" role="alert"></div>
       </div>
-      <button class="mobile-toggle" id="mobileToggle">☰</button>
     </div>
-    
-    <nav class="sidebar-nav" id="sidebarNav">
-      <button class="nav-btn active" data-tab="dashboard"><span class="icon">🏠</span> Dashboard</button>
-      <button class="nav-btn" data-tab="explorer"><span class="icon">🔍</span> Explorer</button>
-      <button class="nav-btn" data-tab="patterns"><span class="icon">🧠</span> Master Patterns</button>
-      <button class="nav-btn" data-tab="mistakes"><span class="icon">🩹</span> Mistake Log</button>
-      <button class="nav-btn" data-tab="compare"><span class="icon">⚖️</span> Compare</button>
-      <button class="nav-btn" data-tab="stats"><span class="icon">👤</span> My Stats</button>
-      <button class="nav-btn" data-tab="contests"><span class="icon">🗓️</span> Contests</button>
-      <button class="nav-btn" data-tab="cs"><span class="icon">🖥️</span> Systems & CS</button>
-      <button class="nav-btn" data-tab="pipeline"><span class="icon">💼</span> Job Pipeline</button>
-    </nav>
-    
-    <div class="sidebar-footer">
-      <span id="authUserLabel" class="auth-user-label"></span>
-      <button class="icon-btn" id="exportBtn">↓ export</button>
-      <button class="icon-btn" id="importBtn">↑ import</button>
-      <button class="icon-btn" id="logoutBtn">log out</button>
-      <input type="file" id="importFile" style="display:none" accept="application/json">
-    </div>
-  </aside>
 
-  <!-- MAIN CONTENT -->
-  <main class="main-content">
-    <div class="motiv-strip" id="motivStrip"></div>
-
-    <!-- DASHBOARD TAB -->
-    <div id="tab-dashboard" class="tab-content active-tab">
-      
-      <!-- JARVIS HUD -->
-      <div class="panel" style="background: linear-gradient(135deg, rgba(0, 240, 255, 0.03), rgba(0, 163, 255, 0.05)); border: 1px solid rgba(0, 240, 255, 0.2); box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:12px; height:12px; border-radius:50%; background:#00F0FF; box-shadow: 0 0 10px #00F0FF; animation: pulse 2s infinite;"></div>
-            <div style="font-family:var(--font-display); font-size:16px; font-weight:700; color:#00F0FF; letter-spacing:1px;">J.A.R.V.I.S. DAILY BRIEFING</div>
+    <div class="layout-wrapper">
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="brand">
+            <div class="mark">&lt;/&gt;</div>
+            <div>
+              <div class="name">Pattern Desk</div>
+            </div>
           </div>
-          <button id="jarvisBootBtn" class="btn btn-primary btn-sm" style="background:rgba(0, 240, 255, 0.1); color:#00F0FF; border:1px solid #00F0FF;">Initialize Briefing</button>
+          <button class="mobile-toggle" id="mobileToggle">☰</button>
         </div>
-        <div id="jarvisConsole" style="font-family:var(--font-mono); font-size:14px; color:#A0A0B0; min-height:80px; padding:16px; background:rgba(0,0,0,0.4); border-radius:8px; border:1px solid var(--border-strong); line-height:1.6;">
-          System standby. Awaiting initialization command...
+
+        <nav class="sidebar-nav" id="sidebarNav">
+          <button class="nav-btn active" data-tab="dashboard">
+            <span class="icon">🏠</span> Dashboard
+          </button>
+          <button class="nav-btn" data-tab="explorer">
+            <span class="icon">🔍</span> Explorer
+          </button>
+          <button class="nav-btn" data-tab="patterns">
+            <span class="icon">🧠</span> Master Patterns
+          </button>
+          <button class="nav-btn" data-tab="mistakes">
+            <span class="icon">🩹</span> Mistake Log
+          </button>
+          <button class="nav-btn" data-tab="compare">
+            <span class="icon">⚖️</span> Compare
+          </button>
+          <button class="nav-btn" data-tab="stats">
+            <span class="icon">👤</span> My Stats
+          </button>
+          <button class="nav-btn" data-tab="contests">
+            <span class="icon">🗓️</span> Contests
+          </button>
+          <button class="nav-btn" data-tab="cs">
+            <span class="icon">🖥️</span> Systems & CS
+          </button>
+          <button class="nav-btn" data-tab="pipeline">
+            <span class="icon">💼</span> Job Pipeline
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span id="authUserLabel" class="auth-user-label"></span>
+          <button class="icon-btn" id="exportBtn">↓ export</button>
+          <button class="icon-btn" id="importBtn">↑ import</button>
+          <button class="icon-btn" id="logoutBtn">log out</button>
+          <input
+            type="file"
+            id="importFile"
+            style="display: none"
+            accept="application/json"
+          />
         </div>
-      </div>
-      
-      <div class="panel">
-        <div class="panel-title">📊 Your Progress</div>
-        <div class="panel-sub">DSA, CS Fundamentals and System Design — all in one place. Keep every ring moving.</div>
-        <div class="dash-grid" id="dashProgressGrid"></div>
-      </div>
+      </aside>
 
-      <div class="panel" id="dashStreakPanel">
-        <div class="panel-title">🔥 Solve Streak</div>
-        <div class="panel-sub">Your daily LeetCode-style contribution graph — from problems you've marked solved in the Explorer tab.</div>
-        <div id="dashHeatmapHost"></div>
-      </div>
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <div class="motiv-strip" id="motivStrip"></div>
 
-      <div class="panel">
-        <div class="panel-title">🎯 Revision Queue — DSA Patterns</div>
-        <div class="panel-sub">Mark a pattern reviewed and it goes on a spaced-repetition schedule (3 → 7 → 14 → 30 days). Cards glow gold when due.</div>
-        <div id="revisionGrid" class="revision-grid"></div>
-      </div>
+        <!-- DASHBOARD TAB -->
+        <div id="tab-dashboard" class="tab-content active-tab">
+          <!-- JARVIS HUD -->
+          <div
+            class="panel"
+            style="
+              background: linear-gradient(
+                135deg,
+                rgba(0, 240, 255, 0.03),
+                rgba(0, 163, 255, 0.05)
+              );
+              border: 1px solid rgba(0, 240, 255, 0.2);
+              box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 12px">
+                <div
+                  style="
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    background: #00f0ff;
+                    box-shadow: 0 0 10px #00f0ff;
+                    animation: pulse 2s infinite;
+                  "
+                ></div>
+                <div
+                  style="
+                    font-family: var(--font-display);
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #00f0ff;
+                    letter-spacing: 1px;
+                  "
+                >
+                  J.A.R.V.I.S. DAILY BRIEFING
+                </div>
+              </div>
+              <button
+                id="jarvisBootBtn"
+                class="btn btn-primary btn-sm"
+                style="
+                  background: rgba(0, 240, 255, 0.1);
+                  color: #00f0ff;
+                  border: 1px solid #00f0ff;
+                "
+              >
+                Initialize Briefing
+              </button>
+            </div>
+            <div
+              id="jarvisConsole"
+              style="
+                font-family: var(--font-mono);
+                font-size: 14px;
+                color: #a0a0b0;
+                min-height: 80px;
+                padding: 16px;
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 8px;
+                border: 1px solid var(--border-strong);
+                line-height: 1.6;
+              "
+            >
+              System standby. Awaiting initialization command...
+            </div>
+          </div>
 
-      <div class="panel">
-        <div class="panel-title">📚 Study Resources <span id="studyStreakBadge"></span></div>
-        <div class="panel-sub">Rated resources for DSA, CS Fundamentals and System Design — the gold-bordered card is the one to start with in each section. Check one off when you study it today to build your combined study streak.</div>
-        <div id="resourcesHost"></div>
-      </div>
-    </div>
+          <div class="panel">
+            <div class="panel-title">📊 Your Progress</div>
+            <div class="panel-sub">
+              DSA, CS Fundamentals and System Design — all in one place. Keep
+              every ring moving.
+            </div>
+            <div class="dash-grid" id="dashProgressGrid"></div>
+          </div>
 
-    <!-- EXPLORER TAB -->
-    <div id="tab-explorer" class="tab-content" style="display:none">
-      <div class="panel" style="position:relative; z-index:99;">
-        <div class="panel-title">Pick a company</div>
-        <div class="panel-sub">654 companies, ~18k tagged questions, snapshot from the community-maintained repo.
-          <button class="btn btn-ghost" id="repoRefreshBtn" style="float:right; padding: 4px 8px;">🔄 Refresh from repo</button>
-        </div>
-        <div class="picker-row">
-          <div class="autocomplete">
-            <input type="text" id="companySearch" placeholder="Type a company name — e.g. amazon, stripe, doordash…" autocomplete="off">
-            <div class="ac-list" id="acList"></div>
+          <div class="panel" id="dashStreakPanel">
+            <div class="panel-title">🔥 Solve Streak</div>
+            <div class="panel-sub">
+              Your daily LeetCode-style contribution graph — from problems
+              you've marked solved in the Explorer tab.
+            </div>
+            <div id="dashHeatmapHost"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">🎯 Revision Queue — DSA Patterns</div>
+            <div class="panel-sub">
+              Mark a pattern reviewed and it goes on a spaced-repetition
+              schedule (3 → 7 → 14 → 30 days). Cards glow gold when due.
+            </div>
+            <div id="revisionGrid" class="revision-grid"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">
+              📚 Study Resources <span id="studyStreakBadge"></span>
+            </div>
+            <div class="panel-sub">
+              Rated resources for DSA, CS Fundamentals and System Design — the
+              gold-bordered card is the one to start with in each section. Check
+              one off when you study it today to build your combined study
+              streak.
+            </div>
+            <div id="resourcesHost"></div>
           </div>
         </div>
-      </div>
-      <div id="explorerContent"></div>
-    </div>
 
-    <!-- PATTERNS TAB (MASTER PATTERN SHEET) -->
-    <div id="tab-patterns" class="tab-content" style="display:none">
-      <div class="panel">
-        <div class="panel-title" style="justify-content: space-between;">
-          <span>🎯 Master Pattern Sheet</span>
-          <div style="display:flex; gap:12px; align-items:center;">
-            <button class="btn btn-ghost btn-sm" onclick="window.addNewPattern()">+ Add Pattern</button>
-            <div class="view-toggle" id="patternViewToggle">
-              <button data-v="gallery" class="active">Gallery</button>
-              <button data-v="table">Table</button>
+        <!-- EXPLORER TAB -->
+        <div id="tab-explorer" class="tab-content" style="display: none">
+          <div class="panel" style="position: relative; z-index: 99">
+            <div class="panel-title">Pick a company</div>
+            <div class="panel-sub">
+              654 companies, ~18k tagged questions, snapshot from the
+              community-maintained repo.
+              <button
+                class="btn btn-ghost"
+                id="repoRefreshBtn"
+                style="float: right; padding: 4px 8px"
+              >
+                🔄 Refresh from repo
+              </button>
+            </div>
+            <div class="picker-row">
+              <div class="autocomplete">
+                <input
+                  type="text"
+                  id="companySearch"
+                  placeholder="Type a company name — e.g. amazon, stripe, doordash…"
+                  autocomplete="off"
+                />
+                <div class="ac-list" id="acList"></div>
+              </div>
+            </div>
+          </div>
+          <div id="explorerContent"></div>
+        </div>
+
+        <!-- PATTERNS TAB (MASTER PATTERN SHEET) -->
+        <div id="tab-patterns" class="tab-content" style="display: none">
+          <div class="panel">
+            <div class="panel-title" style="justify-content: space-between">
+              <span>🎯 Master Pattern Sheet</span>
+              <div style="display: flex; gap: 12px; align-items: center">
+                <button
+                  class="btn btn-ghost btn-sm"
+                  onclick="window.addNewPattern()"
+                >
+                  + Add Pattern
+                </button>
+                <div class="view-toggle" id="patternViewToggle">
+                  <button data-v="gallery" class="active">Gallery</button>
+                  <button data-v="table">Table</button>
+                </div>
+              </div>
+            </div>
+            <div class="panel-sub">
+              Topic frequency across all companies. Click a pattern to review
+              its boilerplate (C++), intuition, and track important questions.
+            </div>
+
+            <div id="patternHost"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">
+              🔁 Most repeated questions across companies
+            </div>
+            <div class="panel-sub">
+              Problems that show up at the widest range of companies — highest
+              leverage to solve first.
+            </div>
+            <div id="mostRepeated"></div>
+          </div>
+        </div>
+
+        <!-- MISTAKES TAB -->
+        <div id="tab-mistakes" class="tab-content" style="display: none">
+          <div class="panel">
+            <div class="panel-title">🩹 Mistake Log</div>
+            <div class="panel-sub">
+              Every problem you've flagged as "struggled" or logged a mistake
+              tag on, across every company you've browsed.
+            </div>
+            <div class="mistake-tabgroup" id="mistakeCategoryTabs">
+              <button data-cat="tag" class="active">By mistake reason</button>
+              <button data-cat="pattern">By DSA pattern</button>
+              <button data-cat="difficulty">By difficulty</button>
+              <button data-cat="frequency">By company frequency</button>
+            </div>
+            <div
+              id="mistakeSummary"
+              class="mp-grid"
+              style="margin-bottom: 16px"
+            ></div>
+            <div id="mistakeTable"></div>
+          </div>
+        </div>
+
+        <!-- COMPARE TAB -->
+        <div id="tab-compare" class="tab-content" style="display: none">
+          <div class="panel">
+            <div class="panel-title">⚖️ Compare companies</div>
+            <div class="panel-sub">
+              Pick 2–4 companies to see combined patterns and overlapping
+              questions worth prioritizing.
+            </div>
+            <div class="picker-row">
+              <div class="autocomplete">
+                <input
+                  type="text"
+                  id="compareSearch"
+                  placeholder="Add a company to compare…"
+                  autocomplete="off"
+                />
+                <div class="ac-list" id="acListCompare"></div>
+              </div>
+            </div>
+            <div class="company-chips" id="compareChips"></div>
+          </div>
+          <div id="compareContent"></div>
+        </div>
+
+        <!-- STATS TAB -->
+        <div id="tab-stats" class="tab-content" style="display: none">
+          <div class="panel">
+            <div class="panel-title">👤 My Coding Profile</div>
+            <div class="panel-sub">
+              Pull your live stats from LeetCode and GeeksforGeeks. Usernames
+              are saved locally so you only enter them once.
+            </div>
+            <div class="profile-inputs">
+              <div class="field">
+                <label>LeetCode username</label
+                ><input
+                  type="text"
+                  id="lcUsername"
+                  placeholder="e.g. striver_79"
+                  style="
+                    width: 100%;
+                    padding: 10px;
+                    border-radius: 8px;
+                    border: 1px solid var(--border);
+                    background: var(--bg-input);
+                    color: var(--ink);
+                    font-family: var(--font-mono);
+                    margin-top: 4px;
+                  "
+                />
+              </div>
+              <div class="field">
+                <label>GeeksforGeeks username</label
+                ><input
+                  type="text"
+                  id="gfgUsername"
+                  placeholder="e.g. gfgcoder"
+                  style="
+                    width: 100%;
+                    padding: 10px;
+                    border-radius: 8px;
+                    border: 1px solid var(--border);
+                    background: var(--bg-input);
+                    color: var(--ink);
+                    font-family: var(--font-mono);
+                    margin-top: 4px;
+                  "
+                />
+              </div>
+              <button class="btn btn-primary" id="loadStatsBtn">
+                Load stats
+              </button>
+            </div>
+            <div id="statsContent"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">🏆 Achievements</div>
+            <div class="panel-sub">
+              Badges unlock automatically as you log solves in the Explorer tab.
+              Keep the streak alive.
+            </div>
+            <div id="badgesHost"></div>
+          </div>
+        </div>
+
+        <!-- CONTESTS TAB -->
+        <div id="tab-contests" class="tab-content" style="display: none">
+          <div class="panel">
+            <div class="panel-title">🗓️ Contest &amp; Event Calendar</div>
+            <div class="panel-sub">
+              Live upcoming contests from Codeforces, LeetCode, CodeChef,
+              AtCoder, HackerEarth, plus Hackathons (DevFolio/MLH).
+            </div>
+            <div class="cal-toolbar">
+              <div class="cal-nav">
+                <button id="calPrev">‹</button>
+                <div class="cal-title" id="calTitle"></div>
+                <button id="calNext">›</button>
+                <button id="calToday">Today</button>
+                <button id="calRefresh" title="Refresh Contests">🔄</button>
+              </div>
+              <div class="cal-legend" id="calLegend"></div>
+              <div style="display: flex; gap: 8px; align-items: center">
+                <div class="view-toggle" id="calViewToggle">
+                  <button data-v="grid" class="active">Calendar</button>
+                  <button data-v="agenda">Agenda</button>
+                </div>
+                <button class="btn btn-primary" id="addEventBtn">
+                  + Add event
+                </button>
+              </div>
+            </div>
+            <div id="calStatus" class="loading-line"></div>
+            <div id="calGridHost"></div>
+            <div id="calAgendaHost" style="display: none"></div>
+            <div id="calDayDetail"></div>
+          </div>
+
+          <!-- Prize Money / Hackathon table -->
+          <div class="panel">
+            <div class="panel-title">🏆 Featured Contests & Hackathons</div>
+            <div class="panel-sub">
+              High-value competitions compared by prize money and tech stack.
+            </div>
+            <div style="overflow-x: auto">
+              <table id="featuredContestsTable">
+                <thead>
+                  <tr>
+                    <th>Worthiness</th>
+                    <th>Platform</th>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Prize Money</th>
+                    <th>Stack / Focus</th>
+                    <th>Link</th>
+                  </tr>
+                </thead>
+                <tbody id="featuredContestsBody"></tbody>
+              </table>
             </div>
           </div>
         </div>
-        <div class="panel-sub">Topic frequency across all companies. Click a pattern to review its boilerplate (C++), intuition, and track important questions.</div>
-        
-        <div id="patternHost"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">🔁 Most repeated questions across companies</div>
-        <div class="panel-sub">Problems that show up at the widest range of companies — highest leverage to solve first.</div>
-        <div id="mostRepeated"></div>
-      </div>
-    </div>
 
-    <!-- MISTAKES TAB -->
-    <div id="tab-mistakes" class="tab-content" style="display:none">
-      <div class="panel">
-        <div class="panel-title">🩹 Mistake Log</div>
-        <div class="panel-sub">Every problem you've flagged as "struggled" or logged a mistake tag on, across every company you've browsed.</div>
-        <div class="mistake-tabgroup" id="mistakeCategoryTabs">
-          <button data-cat="tag" class="active">By mistake reason</button>
-          <button data-cat="pattern">By DSA pattern</button>
-          <button data-cat="difficulty">By difficulty</button>
-          <button data-cat="frequency">By company frequency</button>
+        <!-- Tab 8: Systems & CS -->
+        <div id="tab-cs" class="tab-content" style="display: none"></div>
+
+        <!-- Tab 9: Job Pipeline -->
+        <div id="tab-pipeline" class="tab-content" style="display: none"></div>
+
+        <div class="footer-note">
+          Data snapshot from the community-maintained
+          <a
+            href="https://github.com/snehasishroy/leetcode-companywise-interview-questions"
+            target="_blank"
+            >leetcode-companywise-interview-questions</a
+          >
+          repo · UI by Pattern Desk
         </div>
-        <div id="mistakeSummary" class="mp-grid" style="margin-bottom:16px;"></div>
-        <div id="mistakeTable"></div>
+      </main>
+    </div>
+
+    <!-- Note modal -->
+    <div class="modal-bg" id="noteModal">
+      <div class="modal">
+        <h3 id="noteModalTitle">Notes</h3>
+        <textarea
+          id="noteText"
+          placeholder="What went wrong? What's the pattern? Anything to remember next time…"
+        ></textarea>
+        <div style="margin-top: 10px">
+          <label
+            style="
+              font-family: var(--font-mono);
+              font-size: 11.5px;
+              color: var(--ink-soft);
+            "
+            >Mistake tag</label
+          ><br />
+          <select
+            id="noteMistakeTag"
+            class="mistake-select"
+            style="width: 100%; margin-top: 5px"
+          ></select>
+        </div>
+        <div style="margin-top: 10px">
+          <label
+            style="
+              font-family: var(--font-mono);
+              font-size: 11.5px;
+              color: var(--ink-soft);
+            "
+            >DSA Pattern</label
+          ><br />
+          <select
+            id="notePattern"
+            class="mistake-select"
+            style="width: 100%; margin-top: 5px"
+          ></select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="noteCancel">Cancel</button>
+          <button class="btn btn-primary" id="noteSave">Save</button>
+        </div>
       </div>
     </div>
 
-    <!-- COMPARE TAB -->
-    <div id="tab-compare" class="tab-content" style="display:none">
-      <div class="panel">
-        <div class="panel-title">⚖️ Compare companies</div>
-        <div class="panel-sub">Pick 2–4 companies to see combined patterns and overlapping questions worth prioritizing.</div>
-        <div class="picker-row">
-          <div class="autocomplete">
-            <input type="text" id="compareSearch" placeholder="Add a company to compare…" autocomplete="off">
-            <div class="ac-list" id="acListCompare"></div>
+    <!-- Custom event modal -->
+    <div class="modal-bg" id="eventModal">
+      <div class="modal">
+        <h3>Add a custom event</h3>
+        <label>Title</label>
+        <input
+          type="text"
+          id="evTitle"
+          placeholder="e.g. Amazon SDE Intern OA window"
+        />
+        <label>Category</label>
+        <select id="evCategory">
+          <option>Hackathon</option>
+          <option>Interview</option>
+          <option>Online Assessment</option>
+          <option>Application Deadline</option>
+          <option>Contest</option>
+          <option>Other</option>
+        </select>
+        <label>Date</label>
+        <input type="date" id="evDate" />
+        <label>Link (optional)</label>
+        <input type="url" id="evUrl" placeholder="https://…" />
+        <label>Notes (optional)</label>
+        <textarea
+          id="evNotes"
+          style="min-height: 60px; margin-top: 5px"
+        ></textarea>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="eventCancel">Cancel</button>
+          <button class="btn btn-primary" id="eventSave">Save event</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Master Pattern Detail Modal -->
+    <div class="modal-bg" id="patternDetailModal">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2 id="patternDetailTitle">Pattern Name</h2>
+          <select id="patternMasterySelect" class="status-select">
+            <option value="New">New</option>
+            <option value="Learning">Learning</option>
+            <option value="Practiced">Practiced</option>
+            <option value="Mastered">Mastered</option>
+          </select>
+        </div>
+
+        <div class="pattern-detail-grid">
+          <div class="pattern-section" style="grid-column: 1 / -1">
+            <details
+              id="patternCodeCollapse"
+              style="
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid var(--border-strong);
+                border-radius: 12px;
+                padding: 16px;
+              "
+            >
+              <summary
+                style="
+                  cursor: pointer;
+                  font-weight: 700;
+                  color: var(--accent);
+                  outline: none;
+                  user-select: none;
+                  font-size: 14px;
+                "
+              >
+                &#9654; Boilerplate Code / Template (View & Edit)
+              </summary>
+              <div style="margin-top: 16px; position: relative">
+                <div
+                  style="
+                    display: flex;
+                    justify-content: flex-end;
+                    margin-bottom: 8px;
+                  "
+                >
+                  <button
+                    id="toggleCodeEditBtn"
+                    class="btn btn-ghost btn-sm"
+                    style="background: var(--bg-input)"
+                  >
+                    ✏️ Edit Code
+                  </button>
+                </div>
+                <div
+                  id="patternCodeView"
+                  style="
+                    background: #0d0d0d;
+                    border-radius: 8px;
+                    padding: 16px;
+                    overflow-x: auto;
+                  "
+                >
+                  <pre
+                    style="margin: 0"
+                  ><code id="patternCodeDisplay" class="language-cpp" style="font-family:var(--font-mono); font-size:13px;"></code></pre>
+                </div>
+                <textarea
+                  id="patternCode"
+                  class="code-font"
+                  style="
+                    display: none;
+                    min-height: 300px;
+                    width: 100%;
+                    border-radius: 8px;
+                    background: #0d0d0d;
+                    color: #a9dc76;
+                    padding: 16px;
+                    font-size: 14px;
+                    border: 1px solid var(--border);
+                    resize: vertical;
+                  "
+                ></textarea>
+              </div>
+            </details>
           </div>
-        </div>
-        <div class="company-chips" id="compareChips"></div>
-      </div>
-      <div id="compareContent"></div>
-    </div>
 
-    <!-- STATS TAB -->
-    <div id="tab-stats" class="tab-content" style="display:none">
-      <div class="panel">
-        <div class="panel-title">👤 My Coding Profile</div>
-        <div class="panel-sub">Pull your live stats from LeetCode and GeeksforGeeks. Usernames are saved locally so you only enter them once.</div>
-        <div class="profile-inputs">
-          <div class="field"><label>LeetCode username</label><input type="text" id="lcUsername" placeholder="e.g. striver_79" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-input); color:var(--ink); font-family:var(--font-mono); margin-top:4px;"></div>
-          <div class="field"><label>GeeksforGeeks username</label><input type="text" id="gfgUsername" placeholder="e.g. gfgcoder" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-input); color:var(--ink); font-family:var(--font-mono); margin-top:4px;"></div>
-          <button class="btn btn-primary" id="loadStatsBtn">Load stats</button>
-        </div>
-        <div id="statsContent"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">🏆 Achievements</div>
-        <div class="panel-sub">Badges unlock automatically as you log solves in the Explorer tab. Keep the streak alive.</div>
-        <div id="badgesHost"></div>
-      </div>
-    </div>
-
-    <!-- CONTESTS TAB -->
-    <div id="tab-contests" class="tab-content" style="display:none">
-      <div class="panel">
-        <div class="panel-title">🗓️ Contest &amp; Event Calendar</div>
-        <div class="panel-sub">Live upcoming contests from Codeforces, LeetCode, CodeChef, AtCoder, HackerEarth, plus Hackathons (DevFolio/MLH).</div>
-        <div class="cal-toolbar">
-          <div class="cal-nav">
-            <button id="calPrev">‹</button>
-            <div class="cal-title" id="calTitle"></div>
-            <button id="calNext">›</button>
-            <button id="calToday">Today</button>
-            <button id="calRefresh" title="Refresh Contests">🔄</button>
+          <div class="pattern-section">
+            <label>Intuition / How it works</label>
+            <textarea id="patternIntuition"></textarea>
           </div>
-          <div class="cal-legend" id="calLegend"></div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <div class="view-toggle" id="calViewToggle">
-              <button data-v="grid" class="active">Calendar</button>
-              <button data-v="agenda">Agenda</button>
+
+          <div class="pattern-section">
+            <label>When to use it</label>
+            <textarea id="patternWhenToUse"></textarea>
+          </div>
+
+          <div class="pattern-section">
+            <label>Common Mistakes</label>
+            <textarea id="patternMistakes"></textarea>
+          </div>
+
+          <div class="pattern-section">
+            <label>Optimal Approach Details</label>
+            <textarea id="patternOptimal"></textarea>
+          </div>
+
+          <div class="pattern-section" style="grid-column: 1 / -1">
+            <label>Important Questions</label>
+            <div id="patternQuestionsList" class="questions-list"></div>
+            <div class="add-question-row">
+              <input type="text" id="newQName" placeholder="Problem Name" />
+              <input type="url" id="newQUrl" placeholder="https://..." />
+              <button class="btn btn-primary btn-sm" id="patternAddQuestionBtn">
+                + Add
+              </button>
             </div>
-            <button class="btn btn-primary" id="addEventBtn">+ Add event</button>
           </div>
         </div>
-        <div id="calStatus" class="loading-line"></div>
-        <div id="calGridHost"></div>
-        <div id="calAgendaHost" style="display:none"></div>
-        <div id="calDayDetail"></div>
-      </div>
-      
-      <!-- Prize Money / Hackathon table -->
-      <div class="panel">
-        <div class="panel-title">🏆 Featured Contests & Hackathons</div>
-        <div class="panel-sub">High-value competitions compared by prize money and tech stack.</div>
-        <div style="overflow-x:auto;">
-          <table id="featuredContestsTable">
-            <thead>
-              <tr>
-                <th>Worthiness</th>
-                <th>Platform</th>
-                <th>Name</th>
-                <th>Date</th>
-                <th>Prize Money</th>
-                <th>Stack / Focus</th>
-                <th>Link</th>
-              </tr>
-            </thead>
-            <tbody id="featuredContestsBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Tab 8: Systems & CS -->
-    <div id="tab-cs" class="tab-content" style="display:none;"></div>
-    
-    <!-- Tab 9: Job Pipeline -->
-    <div id="tab-pipeline" class="tab-content" style="display:none;"></div>
 
-    <div class="footer-note">Data snapshot from the community-maintained <a href="https://github.com/snehasishroy/leetcode-companywise-interview-questions" target="_blank">leetcode-companywise-interview-questions</a> repo · UI by Pattern Desk</div>
-  </main>
-</div>
-
-<!-- Note modal -->
-<div class="modal-bg" id="noteModal">
-  <div class="modal">
-    <h3 id="noteModalTitle">Notes</h3>
-    <textarea id="noteText" placeholder="What went wrong? What's the pattern? Anything to remember next time…"></textarea>
-    <div style="margin-top:10px;">
-      <label style="font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft);">Mistake tag</label><br>
-      <select id="noteMistakeTag" class="mistake-select" style="width:100%; margin-top:5px;"></select>
-    </div>
-    <div style="margin-top:10px;">
-      <label style="font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft);">DSA Pattern</label><br>
-      <select id="notePattern" class="mistake-select" style="width:100%; margin-top:5px;"></select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="noteCancel">Cancel</button>
-      <button class="btn btn-primary" id="noteSave">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- Custom event modal -->
-<div class="modal-bg" id="eventModal">
-  <div class="modal">
-    <h3>Add a custom event</h3>
-    <label>Title</label>
-    <input type="text" id="evTitle" placeholder="e.g. Amazon SDE Intern OA window">
-    <label>Category</label>
-    <select id="evCategory">
-      <option>Hackathon</option>
-      <option>Interview</option>
-      <option>Online Assessment</option>
-      <option>Application Deadline</option>
-      <option>Contest</option>
-      <option>Other</option>
-    </select>
-    <label>Date</label>
-    <input type="date" id="evDate">
-    <label>Link (optional)</label>
-    <input type="url" id="evUrl" placeholder="https://…">
-    <label>Notes (optional)</label>
-    <textarea id="evNotes" style="min-height:60px; margin-top:5px;"></textarea>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="eventCancel">Cancel</button>
-      <button class="btn btn-primary" id="eventSave">Save event</button>
-    </div>
-  </div>
-</div>
-
-<!-- Master Pattern Detail Modal -->
-<div class="modal-bg" id="patternDetailModal">
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <h2 id="patternDetailTitle">Pattern Name</h2>
-      <select id="patternMasterySelect" class="status-select">
-        <option value="New">New</option>
-        <option value="Learning">Learning</option>
-        <option value="Practiced">Practiced</option>
-        <option value="Mastered">Mastered</option>
-      </select>
-    </div>
-    
-    <div class="pattern-detail-grid">
-      <div class="pattern-section" style="grid-column: 1 / -1;">
-        <details id="patternCodeCollapse" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-strong); border-radius:12px; padding:16px;">
-          <summary style="cursor:pointer; font-weight:700; color:var(--accent); outline:none; user-select:none; font-size:14px;">
-            &#9654; Boilerplate Code / Template (View & Edit)
-          </summary>
-          <div style="margin-top:16px; position:relative;">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-              <button id="toggleCodeEditBtn" class="btn btn-ghost btn-sm" style="background:var(--bg-input);">✏️ Edit Code</button>
-            </div>
-            <div id="patternCodeView" style="background:#0d0d0d; border-radius:8px; padding:16px; overflow-x:auto;">
-              <pre style="margin:0;"><code id="patternCodeDisplay" class="language-cpp" style="font-family:var(--font-mono); font-size:13px;"></code></pre>
-            </div>
-            <textarea id="patternCode" class="code-font" style="display:none; min-height:300px; width:100%; border-radius:8px; background:#0d0d0d; color:#a9dc76; padding:16px; font-size:14px; border:1px solid var(--border); resize:vertical;"></textarea>
+        <div
+          class="modal-actions"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+          "
+        >
+          <button
+            class="btn btn-ghost"
+            id="patternDetailDelete"
+            style="color: var(--hard)"
+          >
+            Delete Pattern
+          </button>
+          <div style="display: flex; gap: 12px">
+            <button class="btn btn-ghost" id="patternDetailClose">Close</button>
+            <button class="btn btn-primary" id="patternDetailSave">
+              Save Notes
+            </button>
           </div>
-        </details>
-      </div>
-      
-      <div class="pattern-section">
-        <label>Intuition / How it works</label>
-        <textarea id="patternIntuition"></textarea>
-      </div>
-      
-      <div class="pattern-section">
-        <label>When to use it</label>
-        <textarea id="patternWhenToUse"></textarea>
-      </div>
-      
-      <div class="pattern-section">
-        <label>Common Mistakes</label>
-        <textarea id="patternMistakes"></textarea>
-      </div>
-      
-      <div class="pattern-section">
-        <label>Optimal Approach Details</label>
-        <textarea id="patternOptimal"></textarea>
-      </div>
-      
-      <div class="pattern-section" style="grid-column: 1 / -1;">
-        <label>Important Questions</label>
-        <div id="patternQuestionsList" class="questions-list"></div>
-        <div class="add-question-row">
-          <input type="text" id="newQName" placeholder="Problem Name">
-          <input type="url" id="newQUrl" placeholder="https://...">
-          <button class="btn btn-primary btn-sm" id="patternAddQuestionBtn">+ Add</button>
         </div>
       </div>
     </div>
-    
-    <div class="modal-actions" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-      <button class="btn btn-ghost" id="patternDetailDelete" style="color:var(--hard);">Delete Pattern</button>
-      <div style="display:flex; gap:12px;">
-        <button class="btn btn-ghost" id="patternDetailClose">Close</button>
-        <button class="btn btn-primary" id="patternDetailSave">Save Notes</button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<div class="toast" id="toast"></div>
+    <div class="toast" id="toast"></div>
 
-<!-- Scripts -->
-<script src="js/data-loader.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/app.js"></script>
-<script src="js/components/dashboard.js"></script>
-<script src="js/components/explorer.js"></script>
-<script src="js/components/patterns.js"></script>
-<script src="js/components/mistakes.js"></script>
-<script src="js/components/compare.js"></script>
-<script src="js/components/stats.js"></script>
-<script src="js/components/calendar.js"></script>
-<script src="js/components/cs.js"></script>
-<script src="js/components/pipeline.js"></script>
+    <!-- Scripts -->
+    <script src="js/data-loader.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/components/dashboard.js"></script>
+    <script src="js/components/explorer.js"></script>
+    <script src="js/components/patterns.js"></script>
+    <script src="js/components/mistakes.js"></script>
+    <script src="js/components/compare.js"></script>
+    <script src="js/components/stats.js"></script>
+    <script src="js/components/calendar.js"></script>
+    <script src="js/components/cs.js"></script>
+    <script src="js/components/pipeline.js"></script>
 
-<script>
-  window.addEventListener('load', () => window.initApp());
-</script>
-
-</body>
+    <script>
+      window.addEventListener("load", () => window.initApp());
+    </script>
+  </body>
 </html>
