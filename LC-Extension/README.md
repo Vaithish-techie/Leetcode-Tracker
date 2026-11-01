@@ -8,16 +8,8 @@ This is a Chrome Manifest V3 extension. It uses the popup to inspect the active 
 2. Open `chrome://extensions`.
 3. Enable **Developer mode**.
 4. Choose **Load unpacked** and select this `LC-Extension` folder.
-5. Copy the generated extension ID.
-6. Put this in the dashboard `.env`:
+5. Open a supported LeetCode/GFG/Codeforces/etc. problem, click the extension icon, and sign in with the same Pattern Desk account.
 
-   ```text
-   ALLOWED_ORIGIN=chrome-extension://YOUR_EXTENSION_ID
-   ```
+The popup uses an authenticated session and stores a time-limited server session token in extension storage. The server does not require an extension ID or an extension-specific CORS setting. Chrome's `host_permissions` allow the extension to call the configured dashboard URL.
 
-7. Restart the dashboard server.
-8. Open a supported LeetCode/GFG/Codeforces/etc. problem, click the extension icon, and sign in with the same Pattern Desk account.
-
-The popup uses an authenticated session and, when available, a time-limited server session token stored in extension storage. It also needs the exact CORS origin because the authenticated dashboard API is on `localhost:8000`. Do not use `*` for `ALLOWED_ORIGIN`.
-
-For a deployed dashboard, change `SERVER` in `popup.js` and add that deployed origin to the extension manifest's `host_permissions`.
+For a different deployed dashboard, change `SERVER` in `popup.js` and add that origin to the extension manifest's `host_permissions`. Reload the unpacked extension after changing the manifest.

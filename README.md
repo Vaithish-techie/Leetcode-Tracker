@@ -56,14 +56,14 @@ This project can run on Render, Railway, or any Node host:
 
 - Build command: `npm install`
 - Start command: `npm start`
-- Environment variables: `GEMINI_API_KEY=...`, `HOST=0.0.0.0`, and `COOKIE_SECURE=true`
+- Environment variables: `GEMINI_API_KEY=...`, `HOST=0.0.0.0`, `COOKIE_SECURE=true`, and optionally `DATA_DIR=/opt/render/project/src/storage`
 - Let the platform provide `PORT`; the server reads it automatically.
 
 This is a small authenticated demo. Accounts are separated, but `db.json` is still a local file rather than a production database. On hosts with ephemeral storage, accounts and progress may reset after a restart; use a persistent disk or SQLite/Postgres for real deployment.
 
 ## Extension
 
-`LC-Extension/` is an optional Chrome Manifest V3 companion. It reads the active coding-problem tab, lets you record a mistake, and sends it to the signed-in account through `/api/log-mistake`. Install and CORS setup instructions are in [`LC-Extension/README.md`](</home/vaiunix_111/College/DSA AND CP/LC/LC-tracker/LC-Extension/README.md:1>).
+`LC-Extension/` is an optional Chrome Manifest V3 companion. It reads the active coding-problem tab, lets you record a mistake, and sends it to the signed-in account through `/api/log-mistake`. Install instructions are in [`LC-Extension/README.md`](</home/vaiunix_111/College/DSA AND CP/LC/LC-tracker/LC-Extension/README.md:1>). The extension uses Chrome host permissions and does not require a per-user extension ID or CORS environment variable.
 
 ## Highlights
 

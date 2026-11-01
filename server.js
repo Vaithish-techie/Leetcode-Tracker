@@ -19,7 +19,9 @@ try {
 
 const PORT = Number(process.env.PORT || 8000);
 const HOST = process.env.HOST || '127.0.0.1';
-const DB_FILE = path.join(__dirname, 'db.json');
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const DB_FILE = path.join(DATA_DIR, 'db.json');
 const ENV_FILE = path.join(__dirname, '.env');
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -36,7 +38,7 @@ const ALLOWED_KEYS = new Set([
   'pd_sysd_v1', 'pd_study_checkins_v1', 'pd_jobs_v1'
 ]);
 const PUBLIC_FILES = new Set([
-  'index.html', 'css/style.css', 'js/data-loader.js', 'js/app.js',
+  'index.html', 'css/style.css', 'js/data-loader.js', 'js/auth.js', 'js/app.js',
   'js/components/dashboard.js', 'js/components/explorer.js',
   'js/components/patterns.js', 'js/components/mistakes.js',
   'js/components/compare.js', 'js/components/stats.js',
@@ -203,21 +205,11 @@ const server = http.createServer((req, res) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
-  // Same-origin browser requests need no CORS headers. A browser extension can
-  // opt in explicitly by setting ALLOWED_ORIGIN in the environment.
-  const origin = req.headers.origin;
-  const allowedOrigin = process.env.ALLOWED_ORIGIN;
-  if (allowedOrigin && origin === allowedOrigin) {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  }
-
   if (req.method === 'OPTIONS') {
-    if (allowedOrigin && origin === allowedOrigin) { res.writeHead(204); return res.end(); }
-    return sendJson(res, 403, { error: 'CORS origin is not allowed.' });
+    // Extension pages use host_permissions for cross-origin API access. The
+    // server does not maintain an extension-ID allowlist.
+    res.writeHead(204);
+    return res.end();
   }
 
   const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -268,9 +260,11 @@ const server = http.createServer((req, res) => {
       try {
         writeDb(db);
         const token = createSession(res, id);
-        const result = { ok: true, user: { id, username: normalizedUsername } };
-        if (origin === allowedOrigin && origin?.startsWith('chrome-extension://')) result.sessionToken = token;
-        sendJson(res, 201, result);
+        sendJson(res, 201, {
+          ok: true,
+          user: { id, username: normalizedUsername },
+          sessionToken: token
+        });
       } catch (e) {
         sendJson(res, 500, { error: 'Could not create the account.' });
       }
@@ -291,9 +285,11 @@ const server = http.createServer((req, res) => {
 
       const userId = Object.keys(userStore(db)).find(id => userStore(db)[id] === user);
       const token = createSession(res, userId);
-      const result = { ok: true, user: { id: userId, username: user.username } };
-      if (origin === allowedOrigin && origin?.startsWith('chrome-extension://')) result.sessionToken = token;
-      sendJson(res, 200, result);
+      sendJson(res, 200, {
+        ok: true,
+        user: { id: userId, username: user.username },
+        sessionToken: token
+      });
     });
   }
 
