@@ -44,7 +44,7 @@ async function checkAuth() {
       window.currentUser = data.user;
       authGate.classList.add('hidden');
       const label = document.getElementById('authUserLabel');
-      if (label) label.textContent = `signed in as ${data.user.username}`;
+      if (label) label.textContent = `signed in as ${data.user.email}`;
       return true;
     }
   } catch (error) {
@@ -58,7 +58,7 @@ loginForm.addEventListener('submit', async event => {
   showAuthMessage('Signing in…', true);
   try {
     await sendAuth('/api/auth/login', {
-      username: document.getElementById('loginUsername').value,
+      email: document.getElementById('loginEmail').value,
       password: document.getElementById('loginPassword').value
     });
     window.location.reload();
@@ -70,7 +70,7 @@ registerForm.addEventListener('submit', async event => {
   showAuthMessage('Creating account…', true);
   try {
     await sendAuth('/api/auth/register', {
-      username: document.getElementById('registerUsername').value,
+      email: document.getElementById('registerEmail').value,
       password: document.getElementById('registerPassword').value
     });
     window.location.reload();
@@ -79,6 +79,16 @@ registerForm.addEventListener('submit', async event => {
 
 authToggle.addEventListener('click', () => {
   setAuthMode(registerForm.style.display === 'none' ? 'register' : 'login');
+});
+
+document.querySelectorAll('[data-password-toggle]').forEach(button => {
+  button.addEventListener('click', () => {
+    const input = document.getElementById(button.dataset.passwordToggle);
+    const visible = input.type === 'text';
+    input.type = visible ? 'password' : 'text';
+    button.setAttribute('aria-pressed', String(!visible));
+    button.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+  });
 });
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {

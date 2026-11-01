@@ -126,6 +126,19 @@ function isHttpUrl(value) {
   } catch (e) { return false; }
 }
 
+function normalizeEmail(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function isValidEmail(value) {
+  return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function storedEmail(user) {
+  // The username fallback keeps old demo accounts readable after the switch.
+  return normalizeEmail(user.email || user.username);
+}
+
 function hashPassword(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString('hex');
 }
@@ -168,7 +181,7 @@ function currentUser(req) {
   }
   const db = readDb();
   const user = userStore(db)[session.userId];
-  return user ? { id: session.userId, username: user.username, record: user } : null;
+  return user ? { id: session.userId, email: storedEmail(user), record: user } : null;
 }
 
 function requireUser(req, res) {
@@ -219,7 +232,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/auth/me' && req.method === 'GET') {
     const user = currentUser(req);
     return sendJson(res, 200, user
-      ? { authenticated: true, user: { id: user.id, username: user.username } }
+      ? { authenticated: true, user: { id: user.id, email: user.email } }
       : { authenticated: false });
   }
 
@@ -231,10 +244,10 @@ const server = http.createServer((req, res) => {
   }
 
   if (pathname === '/api/auth/register' && req.method === 'POST') {
-    return readJsonBody(req, res, ({ username, password }) => {
-      const normalizedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
-      if (!/^[a-z0-9_.-]{3,32}$/.test(normalizedUsername)) {
-        return sendJson(res, 400, { error: 'Username must be 3–32 characters: letters, numbers, dot, dash, or underscore.' });
+    return readJsonBody(req, res, ({ email, password }) => {
+      const normalizedEmail = normalizeEmail(email);
+      if (!isValidEmail(normalizedEmail)) {
+        return sendJson(res, 400, { error: 'Enter a valid email address.' });
       }
       if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
         return sendJson(res, 400, { error: 'Password must be 8–128 characters.' });
@@ -242,15 +255,15 @@ const server = http.createServer((req, res) => {
 
       const db = readDb();
       const users = userStore(db);
-      if (Object.values(users).some(user => user.username === normalizedUsername)) {
-        return sendJson(res, 409, { error: 'That username is already registered.' });
+      if (Object.values(users).some(user => storedEmail(user) === normalizedEmail)) {
+        return sendJson(res, 409, { error: 'That email is already registered.' });
       }
 
       const id = `user_${crypto.randomBytes(12).toString('hex')}`;
       const salt = crypto.randomBytes(16).toString('hex');
       const initialData = consumeLegacyData(db);
       users[id] = {
-        username: normalizedUsername,
+        email: normalizedEmail,
         passwordSalt: salt,
         passwordHash: hashPassword(password, salt),
         createdAt: new Date().toISOString(),
@@ -262,7 +275,7 @@ const server = http.createServer((req, res) => {
         const token = createSession(res, id);
         sendJson(res, 201, {
           ok: true,
-          user: { id, username: normalizedUsername },
+          user: { id, email: normalizedEmail },
           sessionToken: token
         });
       } catch (e) {
@@ -274,20 +287,22 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/auth/login' && req.method === 'POST') {
     const ip = req.socket.remoteAddress || 'unknown';
     if (loginRateLimited(ip)) return sendJson(res, 429, { error: 'Too many login attempts. Try again later.' });
-    return readJsonBody(req, res, ({ username, password }) => {
+    return readJsonBody(req, res, ({ email, username, password }) => {
       recordLoginAttempt(ip);
-      const normalizedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
+      const identifier = normalizeEmail(email || username);
       const db = readDb();
-      const user = Object.values(userStore(db)).find(item => item.username === normalizedUsername);
+      const user = Object.values(userStore(db)).find(item =>
+        storedEmail(item) === identifier || normalizeEmail(item.username) === identifier
+      );
       if (!user || typeof password !== 'string' || !passwordsMatch(password, user.passwordSalt, user.passwordHash)) {
-        return sendJson(res, 401, { error: 'Invalid username or password.' });
+        return sendJson(res, 401, { error: 'Invalid email or password.' });
       }
 
       const userId = Object.keys(userStore(db)).find(id => userStore(db)[id] === user);
       const token = createSession(res, userId);
       sendJson(res, 200, {
         ok: true,
-        user: { id: userId, username: user.username },
+        user: { id: userId, email: storedEmail(user) },
         sessionToken: token
       });
     });

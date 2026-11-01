@@ -31,37 +31,36 @@
         </p>
         <form id="loginForm" class="auth-form">
           <label
-            >Username<input
-              id="loginUsername"
-              autocomplete="username"
-              required
-              pattern="[A-Za-z0-9_.-]{3,32}"
-          /></label>
-          <label
-            >Password<input
-              id="loginPassword"
-              type="password"
-              autocomplete="current-password"
+            >Email<input
+              id="loginEmail"
+              type="email"
+              autocomplete="email"
+              maxlength="254"
               required
           /></label>
+          <label>Password
+            <span class="password-field">
+              <input id="loginPassword" type="password" autocomplete="current-password" required />
+              <button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="Show password" aria-pressed="false">👁</button>
+            </span>
+          </label>
           <button class="btn btn-primary" type="submit">Sign in</button>
         </form>
         <form id="registerForm" class="auth-form" style="display: none">
           <label
-            >Username<input
-              id="registerUsername"
-              autocomplete="username"
-              required
-              pattern="[A-Za-z0-9_.-]{3,32}"
-          /></label>
-          <label
-            >Password<input
-              id="registerPassword"
-              type="password"
-              autocomplete="new-password"
-              minlength="8"
+            >Email<input
+              id="registerEmail"
+              type="email"
+              autocomplete="email"
+              maxlength="254"
               required
           /></label>
+          <label>Password
+            <span class="password-field">
+              <input id="registerPassword" type="password" autocomplete="new-password" minlength="8" required />
+              <button class="password-toggle" type="button" data-password-toggle="registerPassword" aria-label="Show password" aria-pressed="false">👁</button>
+            </span>
+          </label>
           <button class="btn btn-primary" type="submit">Create account</button>
         </form>
         <button id="authToggle" class="auth-toggle" type="button">

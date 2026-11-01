@@ -74,8 +74,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const footerNote = document.getElementById("footerNote");
   const authSection = document.getElementById("authSection");
   const authButton = document.getElementById("authButton");
-  const authUsername = document.getElementById("authUsername");
+  const authEmail = document.getElementById("authEmail");
   const authPassword = document.getElementById("authPassword");
+  const passwordToggle = document.getElementById("passwordToggle");
+
+  passwordToggle.addEventListener("click", () => {
+    const visible = authPassword.type === "text";
+    authPassword.type = visible ? "password" : "text";
+    passwordToggle.setAttribute("aria-pressed", String(!visible));
+    passwordToggle.setAttribute("aria-label", visible ? "Show password" : "Hide password");
+  });
 
   // Open dashboard
   document.getElementById("openBtn").addEventListener("click", () => {
@@ -167,7 +175,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const response = await apiFetch("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({
-          username: authUsername.value,
+          email: authEmail.value,
           password: authPassword.value,
         }),
       });

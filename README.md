@@ -25,7 +25,7 @@ User data is stored separately in `db.json` under `users[userId].data`, for exam
 ```text
 users/
   user_<random-id>/
-    username
+    email
     passwordSalt
     passwordHash
     data/

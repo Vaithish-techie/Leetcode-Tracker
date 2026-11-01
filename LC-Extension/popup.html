@@ -52,6 +52,10 @@
     }
     .logo-dot.live { background: var(--green); box-shadow: 0 0 8px var(--green); }
     .server-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+    .password-field { position: relative; display: block; margin-bottom: 7px; }
+    .password-field input { margin-bottom: 0 !important; padding-right: 36px !important; }
+    .password-toggle { position: absolute; top: 50%; right: 5px; transform: translateY(-50%); width: 28px; height: 28px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; font-size: 15px; }
+    .password-toggle:hover, .password-toggle:focus-visible { color: var(--text); background: var(--border); outline: none; }
 
     .problem-banner {
       padding: 12px 16px;
@@ -235,8 +239,11 @@
 
   <div id="authSection" style="padding:14px 16px; border-bottom:1px solid var(--border); background:rgba(245,158,11,0.06);">
     <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);text-transform:uppercase;margin-bottom:8px;">Sign in to Pattern Desk</div>
-    <input id="authUsername" placeholder="Username" autocomplete="username" style="width:100%;margin-bottom:7px;padding:8px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface);color:var(--text);">
-    <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;margin-bottom:7px;padding:8px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface);color:var(--text);">
+    <input id="authEmail" type="email" placeholder="Email" autocomplete="email" style="width:100%;margin-bottom:7px;padding:8px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface);color:var(--text);">
+    <span class="password-field">
+      <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:8px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface);color:var(--text);">
+      <button id="passwordToggle" class="password-toggle" type="button" aria-label="Show password" aria-pressed="false">👁</button>
+    </span>
     <button id="authButton" class="save-btn" style="padding:8px;font-size:11px;">Sign in</button>
   </div>
   <input type="hidden" id="pTitle">
