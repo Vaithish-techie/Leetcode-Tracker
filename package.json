@@ -1,0 +1,12 @@
+{
+  "name": "pattern-desk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Company-wise DSA preparation dashboard",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

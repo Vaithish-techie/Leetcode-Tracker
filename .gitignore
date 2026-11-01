@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+*.tmp
+node_modules/
+
+# Do not publish personal local state if you replace the demo database.
+# db.json
