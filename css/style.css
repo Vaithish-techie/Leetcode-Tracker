@@ -116,6 +116,21 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 800; margin:
 
 .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 44px 56px; max-width: 1600px; }
 
+/* ---- Authentication ---- */
+.auth-gate { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(9,9,11,0.96); }
+.auth-gate.hidden { display:none; }
+.auth-card { width:420px; max-width:100%; padding:34px; border:1px solid var(--border-strong); border-radius:20px; background:linear-gradient(145deg,rgba(24,24,27,.98),rgba(12,12,15,.98)); box-shadow:0 30px 80px rgba(0,0,0,.6); }
+.auth-brand { margin-bottom:28px; }
+.auth-card h1 { font-size:26px; margin-bottom:8px; }
+.auth-card p { color:var(--ink-soft); margin:0 0 24px; font-size:14px; }
+.auth-form { display:flex; flex-direction:column; gap:16px; }
+.auth-form label { color:var(--ink-soft); font-size:13px; }
+.auth-form input { display:block; width:100%; margin-top:6px; padding:12px 14px; border:1px solid var(--border-strong); border-radius:9px; background:var(--bg-input); color:var(--ink); font:14px var(--font-mono); outline:none; }
+.auth-form input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.auth-toggle { margin-top:18px; padding:0; border:0; background:none; color:var(--accent); cursor:pointer; font:13px var(--font-body); }
+.auth-message { min-height:22px; margin-top:14px; color:var(--hard); font-size:13px; }
+.auth-user-label { width:100%; color:var(--ink-faint); font:10px var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 /* ---- Tabs ---- */
 .tab-content { display: none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
 .tab-content.active-tab { display: block; }

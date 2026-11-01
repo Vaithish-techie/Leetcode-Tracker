@@ -44,39 +44,56 @@ function recencyInfo(r) {
 }
 
 // Local Storage / Backend DB Wrappers
+function userStorageKey(key) {
+  const userId = window.currentUser?.id || 'anonymous';
+  return `pattern-desk:${userId}:${key}`;
+}
+
 async function storeGet(key) {
   try {
     // 1. Try to fetch from backend
     const res = await fetch(`/api/get-data?key=${key}`);
+    if (res.status === 401) {
+      window.location.reload();
+      return null;
+    }
     const dbVal = await res.json();
     if (dbVal) return dbVal;
     
-    // 2. Migration Phase: If backend empty but localStorage has it, migrate it!
-    const localVal = localStorage.getItem(key);
+    // 2. Migrate old browser-only data into this user's server record.
+    const scopedKey = userStorageKey(key);
+    const localVal = localStorage.getItem(scopedKey) || localStorage.getItem(key);
     if (localVal) {
       const parsed = JSON.parse(localVal);
       await storeSet(key, parsed); // Save to backend
+      localStorage.setItem(scopedKey, JSON.stringify(parsed));
       localStorage.removeItem(key); // Clear from local
-      console.log(`Migrated ${key} from localStorage to physical Database!`);
+      console.log(`Migrated ${key} to the signed-in user's database record.`);
       return parsed;
     }
     return null;
   } catch(e) { 
     // Fallback if server is down
-    const val = localStorage.getItem(key);
+    const val = localStorage.getItem(userStorageKey(key));
     return val ? JSON.parse(val) : null;
   }
 }
 async function storeSet(key, val) {
   try {
-    await fetch('/api/save-data', {
+    const res = await fetch('/api/save-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ key, val })
     });
+    if (res.status === 401) {
+      window.location.reload();
+      return;
+    }
+    if (!res.ok) throw new Error('Could not save data.');
   } catch(e) {
     // Fallback
-    localStorage.setItem(key, JSON.stringify(val));
+    localStorage.setItem(userStorageKey(key), JSON.stringify(val));
   }
 }
 
@@ -131,6 +148,8 @@ async function initApp() {
   appInitialized = true;
   try {
     await window.dataReady;
+    const authenticated = await window.authReady;
+    if (!authenticated) return;
   } catch (error) {
     document.body.innerHTML = `<main style="padding:40px;font-family:system-ui;color:#f4f4f5;background:#09090b;min-height:100vh"><h1>Pattern Desk could not start</h1><p>${esc(error.message)}</p></main>`;
     return;

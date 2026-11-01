@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const crypto = require('crypto');
 
 // Manually load .env if it exists so users don't need dotenv
 try {
@@ -21,6 +22,14 @@ const HOST = process.env.HOST || '127.0.0.1';
 const DB_FILE = path.join(__dirname, 'db.json');
 const ENV_FILE = path.join(__dirname, '.env');
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const sessions = new Map();
+const loginAttempts = new Map();
+const LEGACY_DATA_KEYS = [
+  'pd_progress_v1', 'pd_patterns_v1', 'pd_usernames_v1',
+  'pd_custom_events_v1', 'pd_revision_v1', 'pd_csf_v1',
+  'pd_sysd_v1', 'pd_study_checkins_v1', 'pd_jobs_v1'
+];
 const ALLOWED_KEYS = new Set([
   'pd_progress_v1', 'pd_patterns_v1', 'pd_usernames_v1',
   'pd_custom_events_v1', 'pd_revision_v1', 'pd_csf_v1',
@@ -64,6 +73,27 @@ function readDb() {
   catch (e) { return {}; }
 }
 
+function userStore(db) {
+  if (!db.users || typeof db.users !== 'object' || Array.isArray(db.users)) db.users = {};
+  return db.users;
+}
+
+function legacyData(db) {
+  const data = {};
+  for (const key of LEGACY_DATA_KEYS) {
+    if (db[key] !== undefined) data[key] = db[key];
+  }
+  return data;
+}
+
+function consumeLegacyData(db) {
+  const users = userStore(db);
+  if (Object.keys(users).length > 0) return {};
+  const data = legacyData(db);
+  for (const key of LEGACY_DATA_KEYS) delete db[key];
+  return data;
+}
+
 function writeDb(db) {
   const tmp = `${DB_FILE}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(db, null, 2), 'utf8');
@@ -94,6 +124,80 @@ function isHttpUrl(value) {
   } catch (e) { return false; }
 }
 
+function hashPassword(password, salt) {
+  return crypto.scryptSync(password, salt, 64).toString('hex');
+}
+
+function passwordsMatch(password, salt, expectedHash) {
+  const actual = Buffer.from(hashPassword(password, salt), 'hex');
+  const expected = Buffer.from(expectedHash, 'hex');
+  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+}
+
+function parseCookies(header = '') {
+  return Object.fromEntries(header.split(';').map(part => {
+    const index = part.indexOf('=');
+    return index < 0 ? [] : [part.slice(0, index).trim(), decodeURIComponent(part.slice(index + 1).trim())];
+  }).filter(pair => pair.length));
+}
+
+function requestSessionToken(req) {
+  const auth = req.headers.authorization || '';
+  if (auth.startsWith('Bearer ')) return auth.slice(7).trim();
+  return parseCookies(req.headers.cookie).pd_session;
+}
+
+function setSessionCookie(res, token) {
+  const secure = process.env.COOKIE_SECURE === 'true' ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `pd_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}${secure}`);
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', 'pd_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+}
+
+function currentUser(req) {
+  const token = requestSessionToken(req);
+  if (!token) return null;
+  const session = sessions.get(token);
+  if (!session || session.expiresAt < Date.now()) {
+    sessions.delete(token);
+    return null;
+  }
+  const db = readDb();
+  const user = userStore(db)[session.userId];
+  return user ? { id: session.userId, username: user.username, record: user } : null;
+}
+
+function requireUser(req, res) {
+  const user = currentUser(req);
+  if (!user) {
+    sendJson(res, 401, { error: 'Authentication required.' });
+    return null;
+  }
+  return user;
+}
+
+function loginRateLimited(ip) {
+  const now = Date.now();
+  const recent = (loginAttempts.get(ip) || []).filter(time => now - time < 10 * 60 * 1000);
+  loginAttempts.set(ip, recent);
+  return recent.length >= 10;
+}
+
+function recordLoginAttempt(ip) {
+  const attempts = loginAttempts.get(ip) || [];
+  attempts.push(Date.now());
+  loginAttempts.set(ip, attempts);
+}
+
+function createSession(res, userId) {
+  const token = crypto.randomBytes(32).toString('hex');
+  sessions.set(token, { userId, expiresAt: Date.now() + SESSION_TTL_MS });
+  setSessionCookie(res, token);
+  return token;
+}
+
 const server = http.createServer((req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -105,8 +209,10 @@ const server = http.createServer((req, res) => {
   const allowedOrigin = process.env.ALLOWED_ORIGIN;
   if (allowedOrigin && origin === allowedOrigin) {
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   }
 
   if (req.method === 'OPTIONS') {
@@ -117,19 +223,100 @@ const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = requestUrl.pathname;
 
+  // Authentication
+  if (pathname === '/api/auth/me' && req.method === 'GET') {
+    const user = currentUser(req);
+    return sendJson(res, 200, user
+      ? { authenticated: true, user: { id: user.id, username: user.username } }
+      : { authenticated: false });
+  }
+
+  if (pathname === '/api/auth/logout' && req.method === 'POST') {
+    const token = requestSessionToken(req);
+    if (token) sessions.delete(token);
+    clearSessionCookie(res);
+    return sendJson(res, 200, { ok: true });
+  }
+
+  if (pathname === '/api/auth/register' && req.method === 'POST') {
+    return readJsonBody(req, res, ({ username, password }) => {
+      const normalizedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
+      if (!/^[a-z0-9_.-]{3,32}$/.test(normalizedUsername)) {
+        return sendJson(res, 400, { error: 'Username must be 3–32 characters: letters, numbers, dot, dash, or underscore.' });
+      }
+      if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+        return sendJson(res, 400, { error: 'Password must be 8–128 characters.' });
+      }
+
+      const db = readDb();
+      const users = userStore(db);
+      if (Object.values(users).some(user => user.username === normalizedUsername)) {
+        return sendJson(res, 409, { error: 'That username is already registered.' });
+      }
+
+      const id = `user_${crypto.randomBytes(12).toString('hex')}`;
+      const salt = crypto.randomBytes(16).toString('hex');
+      const initialData = consumeLegacyData(db);
+      users[id] = {
+        username: normalizedUsername,
+        passwordSalt: salt,
+        passwordHash: hashPassword(password, salt),
+        createdAt: new Date().toISOString(),
+        data: initialData
+      };
+
+      try {
+        writeDb(db);
+        const token = createSession(res, id);
+        const result = { ok: true, user: { id, username: normalizedUsername } };
+        if (origin === allowedOrigin && origin?.startsWith('chrome-extension://')) result.sessionToken = token;
+        sendJson(res, 201, result);
+      } catch (e) {
+        sendJson(res, 500, { error: 'Could not create the account.' });
+      }
+    });
+  }
+
+  if (pathname === '/api/auth/login' && req.method === 'POST') {
+    const ip = req.socket.remoteAddress || 'unknown';
+    if (loginRateLimited(ip)) return sendJson(res, 429, { error: 'Too many login attempts. Try again later.' });
+    return readJsonBody(req, res, ({ username, password }) => {
+      recordLoginAttempt(ip);
+      const normalizedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
+      const db = readDb();
+      const user = Object.values(userStore(db)).find(item => item.username === normalizedUsername);
+      if (!user || typeof password !== 'string' || !passwordsMatch(password, user.passwordSalt, user.passwordHash)) {
+        return sendJson(res, 401, { error: 'Invalid username or password.' });
+      }
+
+      const userId = Object.keys(userStore(db)).find(id => userStore(db)[id] === user);
+      const token = createSession(res, userId);
+      const result = { ok: true, user: { id: userId, username: user.username } };
+      if (origin === allowedOrigin && origin?.startsWith('chrome-extension://')) result.sessionToken = token;
+      sendJson(res, 200, result);
+    });
+  }
+
   // API: Get Data
   if (pathname === '/api/get-data' && req.method === 'GET') {
+    const user = requireUser(req, res);
+    if (!user) return;
     const key = requestUrl.searchParams.get('key');
     if (!ALLOWED_KEYS.has(key)) return sendJson(res, 400, { error: 'Unknown data key.' });
-    return sendJson(res, 200, readDb()[key] || null);
+    return sendJson(res, 200, user.record.data?.[key] ?? null);
   }
 
   // API: Save Data
   if (pathname === '/api/save-data' && req.method === 'POST') {
+    const user = requireUser(req, res);
+    if (!user) return;
     return readJsonBody(req, res, ({ key, val }) => {
       if (!ALLOWED_KEYS.has(key)) return sendJson(res, 400, { error: 'Unknown data key.' });
       const db = readDb();
-      db[key] = val;
+      const record = userStore(db)[user.id];
+      if (!record) return sendJson(res, 401, { error: 'Session is no longer valid.' });
+      record.data = record.data || {};
+      record.data[key] = val;
       try { writeDb(db); sendJson(res, 200, { ok: true }); }
       catch (e) { sendJson(res, 500, { error: 'Could not save data.' }); }
     });
@@ -137,6 +324,8 @@ const server = http.createServer((req, res) => {
 
   // API: Extension Log Mistake
   if (pathname === '/api/log-mistake' && req.method === 'POST') {
+    const user = requireUser(req, res);
+    if (!user) return;
     return readJsonBody(req, res, log => {
       if (typeof log.title !== 'string' || !log.title.trim() || log.title.length > 240) {
         return sendJson(res, 400, { error: 'A valid problem title is required.' });
@@ -144,8 +333,11 @@ const server = http.createServer((req, res) => {
       if (log.url && !isHttpUrl(log.url)) return sendJson(res, 400, { error: 'Problem URL must use HTTP or HTTPS.' });
       const db = readDb();
       
-      let progress = db['pd_progress_v1'] || {};
-      let patternData = db['pd_patterns_v1'] || {};
+      const record = userStore(db)[user.id];
+      if (!record) return sendJson(res, 401, { error: 'Session is no longer valid.' });
+      record.data = record.data || {};
+      let progress = record.data['pd_progress_v1'] || {};
+      let patternData = record.data['pd_patterns_v1'] || {};
       
       const getFakeId = (title) => "ext_" + title.toLowerCase().replace(/[^a-z0-9]/g, '');
       let pid = getFakeId(log.title);
@@ -168,7 +360,7 @@ const server = http.createServer((req, res) => {
       progress[pid].solveTime = log.solveTime || 0;
       progress[pid].timestamp = log.timestamp || Date.now();
       progress[pid].loggedAt = Date.now();
-      db['pd_progress_v1'] = progress;
+      record.data['pd_progress_v1'] = progress;
 
       // Register question in ALL selected patterns
       const patternsToAdd = log.patterns && log.patterns.length ? log.patterns : (log.pattern ? [log.pattern] : []);
@@ -180,7 +372,7 @@ const server = http.createServer((req, res) => {
         const qExists = patternData[pat].questions.some(q => q.url === log.url);
         if (!qExists) patternData[pat].questions.push({ name: log.title, url: log.url });
       });
-      if (patternsToAdd.length) db['pd_patterns_v1'] = patternData;
+      if (patternsToAdd.length) record.data['pd_patterns_v1'] = patternData;
 
       try { writeDb(db); sendJson(res, 200, { ok: true, message: 'Logged successfully!' }); }
       catch (e) { sendJson(res, 500, { error: 'Could not save the mistake.' }); }
@@ -189,6 +381,8 @@ const server = http.createServer((req, res) => {
 
   // API: JARVIS LLM (Gemini)
   if (pathname === '/api/jarvis' && req.method === 'POST') {
+    const user = requireUser(req, res);
+    if (!user) return;
     return readJsonBody(req, res, ({ prompt, type, code, title }) => {
       const allowedTypes = new Set(['analyze_code', 'motivate', 'daily_briefing', 'custom']);
       if (!allowedTypes.has(type)) return sendJson(res, 400, { error: 'Unknown JARVIS request type.' });
@@ -201,6 +395,7 @@ const server = http.createServer((req, res) => {
       }
       
       const db = readDb();
+      const userData = userStore(db)[user.id]?.data || {};
       let sysPrompt = "";
 
       if (type === 'analyze_code') {
@@ -228,7 +423,7 @@ const server = http.createServer((req, res) => {
         Format as plain text, speaking directly to them like Tony Stark. Make it epic.`;
       } else if (type === 'daily_briefing') {
         // Build a rich briefing prompt with live DB data
-        const db2 = readDb();
+        const db2 = userData;
         sysPrompt = `You are JARVIS from Iron Man — highly intelligent, brutally efficient, zero fluff.
         Analyze this user's DSA preparation data and give a DAILY BRIEFING.
         
@@ -244,7 +439,7 @@ const server = http.createServer((req, res) => {
         - Iron Man JARVIS tone: precise, confident, slightly sarcastic`;
       } else {
         sysPrompt = `You are JARVIS, a highly intelligent coding assistant embedded inside a DSA tracker application.
-        Here is the user's current database state: ${JSON.stringify(db).substring(0, 50000)}
+        Here is the user's current data: ${JSON.stringify(userData).substring(0, 50000)}
         Analyze their progress, mistakes, and patterns. Keep responses concise, brilliant, and formatted in plain text (no markdown unless necessary).`;
       }
       

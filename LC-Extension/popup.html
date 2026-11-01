@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0c;
+      --surface: #111115;
+      --border: rgba(255,255,255,0.08);
+      --border-hi: rgba(255,255,255,0.16);
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --accent: #38bdf8;
+      --accent-bg: rgba(56,189,248,0.08);
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --purple: #a78bfa;
+    }
+
+    body {
+      width: 400px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 13px; color: var(--text);
+    }
+    .logo-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 6px var(--red);
+      transition: all 0.4s;
+    }
+    .logo-dot.live { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .server-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+
+    .problem-banner {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .problem-name {
+      font-weight: 700; font-size: 14px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .problem-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 700;
+      padding: 1px 7px; border-radius: 4px;
+    }
+    .badge-E { background: rgba(16,185,129,0.15); color: #10b981; }
+    .badge-M { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .badge-H { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .badge-plat { background: rgba(255,255,255,0.06); color: var(--muted); }
+    .not-on-platform { color: var(--muted); font-size: 13px; }
+
+    .form { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+    .field-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px;
+      margin-bottom: 6px; display: block;
+    }
+
+    /* Tag chips */
+    .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      padding: 4px 9px; border-radius: 5px;
+      border: 1px solid var(--border-hi);
+      background: transparent; color: var(--muted);
+      cursor: pointer; transition: all 0.15s;
+      user-select: none;
+    }
+    .chip:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+    .chip.active { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
+    .chip.aha.active { color: var(--yellow); border-color: var(--yellow); background: rgba(245,158,11,0.08); }
+    
+    /* Multi-select pattern chips */
+    .pattern-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      padding: 4px 9px; border-radius: 5px;
+      border: 1px solid var(--border-hi);
+      background: transparent; color: var(--muted);
+      cursor: pointer; transition: all 0.15s;
+      user-select: none;
+    }
+    .pattern-chip.selected {
+      color: var(--purple); border-color: var(--purple); 
+      background: rgba(167,139,250,0.1);
+    }
+
+    select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 7px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    select:focus { border-color: var(--accent); }
+
+    textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      color: var(--text);
+      padding: 9px 10px;
+      border-radius: 7px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 65px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    .code-ta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: #a78bfa;
+      background: #050507;
+      min-height: 70px;
+    }
+
+    .save-btn {
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      border: none; border-radius: 8px;
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .save-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+    .save-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; filter: none; }
+    .save-btn.ok  { background: var(--green); color: #000; }
+    .save-btn.err { background: var(--red); color: #fff; }
+
+    .footer {
+      padding: 8px 16px 10px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-note { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+    .open-link {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--accent); background: none; border: none;
+      cursor: pointer; opacity: 0.7; transition: opacity 0.15s;
+    }
+    .open-link:hover { opacity: 1; }
+    
+    .selected-patterns {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+    }
+    .sel-pat-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      color: var(--purple); background: rgba(167,139,250,0.1);
+      border: 1px solid rgba(167,139,250,0.3);
+      padding: 2px 8px; border-radius: 4px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .sel-pat-tag button {
+      background: none; border: none; color: var(--purple);
+      cursor: pointer; font-size: 12px; padding: 0; line-height: 1;
+    }
+    
+    .pattern-scroll {
+      max-height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 7px;
+    }
+    .pattern-scroll::-webkit-scrollbar { width: 4px; }
+    .pattern-scroll::-webkit-scrollbar-track { background: transparent; }
+    .pattern-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-dot" id="dot"></div>
+      LC-Tracker
+    </div>
+    <span class="server-status" id="serverStatus">connecting...</span>
+  </div>
+
+  <div class="problem-banner">
+    <div id="problemSection">
+      <div class="problem-name not-on-platform">Detecting problem...</div>
+    </div>
+  </div>
+
+  <div id="authSection" style="padding:14px 16px; border-bottom:1px solid var(--border); background:rgba(245,158,11,0.06);">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);text-transform:uppercase;margin-bottom:8px;">Sign in to Pattern Desk</div>
+    <input id="authUsername" placeholder="Username" autocomplete="username" style="width:100%;margin-bottom:7px;padding:8px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface);color:var(--text);">
+    <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;margin-bottom:7px;padding:8px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface);color:var(--text);">
+    <button id="authButton" class="save-btn" style="padding:8px;font-size:11px;">Sign in</button>
+  </div>
+  <input type="hidden" id="pTitle">
+  <input type="hidden" id="pUrl">
+  <input type="hidden" id="pDiff">
+
+  <div class="form">
+
+    <!-- Tag chips -->
+    <div>
+      <span class="field-label">What went wrong?</span>
+      <div class="chip-group">
+        <div class="chip active"     data-tag="Wrong approach">Wrong approach</div>
+        <div class="chip"            data-tag="Edge case">Edge case</div>
+        <div class="chip"            data-tag="Forgot pattern">Forgot pattern</div>
+        <div class="chip"            data-tag="Logic error">Logic error</div>
+        <div class="chip"            data-tag="TLE">TLE</div>
+        <div class="chip"            data-tag="Didn't understand">Didn't understand</div>
+        <div class="chip aha"        data-tag="Aha Moment!">💡 Aha moment</div>
+      </div>
+      <input type="hidden" id="pTag" value="Wrong approach">
+    </div>
+
+    <!-- Multi-select DSA Patterns -->
+    <div>
+      <span class="field-label">DSA Patterns <span style="opacity:0.5;">(multi-select)</span></span>
+      <div class="pattern-scroll" id="patternChips">
+        <span style="color:var(--muted); font-size:11px; font-family:JetBrains Mono,monospace;">Loading patterns...</span>
+      </div>
+      <div class="selected-patterns" id="selectedPatternsDisplay"></div>
+    </div>
+
+    <!-- Notes -->
+    <div>
+      <span class="field-label">Key insight / what you missed</span>
+      <textarea id="pNotes" placeholder="Write in your own words what clicked or what you missed..."></textarea>
+    </div>
+
+    <!-- Code -->
+    <div>
+      <span class="field-label">Code snapshot</span>
+      <textarea id="pCode" class="code-ta" placeholder="Auto-captured from editor..."></textarea>
+    </div>
+
+    <button class="save-btn" id="saveBtn" disabled>Log to Tracker</button>
+  </div>
+
+  <div class="footer">
+    <span class="footer-note" id="footerNote">—</span>
+    <button class="open-link" id="openBtn">open dashboard ↗</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

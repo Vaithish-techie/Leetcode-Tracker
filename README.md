@@ -16,6 +16,27 @@ Open <http://localhost:8000>.
 
 The server binds to `127.0.0.1` by default. The backend intentionally exposes only the frontend files and the small API routes it needs; `.env` and `db.json` are not public routes.
 
+## Accounts and storage
+
+The app now has sign-up, sign-in, logout, and session expiry. Passwords are never stored directly: the server stores a per-user salt and a `crypto.scrypt` password hash. Sessions are random HttpOnly cookies held by the server.
+
+User data is stored separately in `db.json` under `users[userId].data`, for example:
+
+```text
+users/
+  user_<random-id>/
+    username
+    passwordSalt
+    passwordHash
+    data/
+      pd_progress_v1
+      pd_patterns_v1
+      pd_jobs_v1
+      ...
+```
+
+The first account created automatically migrates the previous flat demo data, if it exists. `db.json` is ignored by Git because it contains private runtime data. For a larger deployment, replace it with SQLite or Postgres; the API boundary is already isolated in `server.js`.
+
 ## Structure
 
 ```text
@@ -35,10 +56,14 @@ This project can run on Render, Railway, or any Node host:
 
 - Build command: `npm install`
 - Start command: `npm start`
-- Environment variables: `GEMINI_API_KEY=...` and `HOST=0.0.0.0`
+- Environment variables: `GEMINI_API_KEY=...`, `HOST=0.0.0.0`, and `COOKIE_SECURE=true`
 - Let the platform provide `PORT`; the server reads it automatically.
 
-This is a single-user/demo data model. A public deployment shares one `db.json` between visitors and does not provide accounts. That is intentional for this internship demo, not a production multi-user design. On hosts with ephemeral storage, progress may reset after a restart.
+This is a small authenticated demo. Accounts are separated, but `db.json` is still a local file rather than a production database. On hosts with ephemeral storage, accounts and progress may reset after a restart; use a persistent disk or SQLite/Postgres for real deployment.
+
+## Extension
+
+`LC-Extension/` is an optional Chrome Manifest V3 companion. It reads the active coding-problem tab, lets you record a mistake, and sends it to the signed-in account through `/api/log-mistake`. Install and CORS setup instructions are in [`LC-Extension/README.md`](</home/vaiunix_111/College/DSA AND CP/LC/LC-tracker/LC-Extension/README.md:1>).
 
 ## Highlights
 

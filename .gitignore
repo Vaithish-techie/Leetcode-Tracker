@@ -4,5 +4,5 @@
 *.tmp
 node_modules/
 
-# Do not publish personal local state if you replace the demo database.
-# db.json
+# User accounts, password hashes, and study data are runtime state.
+db.json
