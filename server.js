@@ -96,11 +96,71 @@ function consumeLegacyData(db) {
   return data;
 }
 
+function defaultDemoProgress() {
+  const now = Date.now();
+  return {
+    demo_two_sum: {
+      status: 'struggled',
+      note: 'I started with a nested loop. A hash map reduces the lookup to constant time per element.',
+      tag: 'Wrong approach initially',
+      customTitle: 'Two Sum',
+      customUrl: 'https://leetcode.com/problems/two-sum/',
+      associatedPattern: 'Hash Map',
+      difficulty: 'E',
+      confidence: 3,
+      solveTime: 0,
+      timestamp: now - 86400000,
+      loggedAt: now - 86400000
+    },
+    demo_median_two_sorted_arrays: {
+      status: 'struggled',
+      note: 'The binary-search partition needs careful left and right boundary handling, especially for empty halves.',
+      tag: 'Edge case missed',
+      customTitle: 'Median of Two Sorted Arrays',
+      customUrl: 'https://leetcode.com/problems/median-of-two-sorted-arrays/',
+      associatedPattern: 'Binary Search',
+      difficulty: 'H',
+      confidence: 2,
+      solveTime: 0,
+      timestamp: now,
+      loggedAt: now
+    }
+  };
+}
+
+function initialUserData(db) {
+  const data = consumeLegacyData(db);
+  // Never carry old platform usernames into a fresh account or demo database.
+  delete data.pd_usernames_v1;
+  if (!data.pd_progress_v1 || Object.keys(data.pd_progress_v1).length === 0) {
+    data.pd_progress_v1 = defaultDemoProgress();
+  }
+  return data;
+}
+
 function writeDb(db) {
   const tmp = `${DB_FILE}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(db, null, 2), 'utf8');
   fs.renameSync(tmp, DB_FILE);
 }
+
+function removeStoredUsernameData() {
+  const db = readDb();
+  let changed = false;
+  if (Object.prototype.hasOwnProperty.call(db, 'pd_usernames_v1')) {
+    delete db.pd_usernames_v1;
+    changed = true;
+  }
+  for (const user of Object.values(userStore(db))) {
+    if (user?.data && Object.prototype.hasOwnProperty.call(user.data, 'pd_usernames_v1')) {
+      delete user.data.pd_usernames_v1;
+      changed = true;
+    }
+  }
+  if (changed) writeDb(db);
+}
+
+removeStoredUsernameData();
 
 function readJsonBody(req, res, callback) {
   let body = '';
@@ -261,7 +321,7 @@ const server = http.createServer((req, res) => {
 
       const id = `user_${crypto.randomBytes(12).toString('hex')}`;
       const salt = crypto.randomBytes(16).toString('hex');
-      const initialData = consumeLegacyData(db);
+      const initialData = initialUserData(db);
       users[id] = {
         email: normalizedEmail,
         passwordSalt: salt,
