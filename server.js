@@ -99,29 +99,63 @@ function consumeLegacyData(db) {
 function defaultDemoProgress() {
   const now = Date.now();
   return {
-    demo_two_sum: {
+    ext_twosum: {
       status: 'struggled',
-      note: 'I started with a nested loop. A hash map reduces the lookup to constant time per element.',
-      tag: 'Wrong approach initially',
+      note: 'Interesting concept using two pointers',
+      tag: 'Aha Moment!',
+      code: `class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        int n=nums.size();
+        unordered_map<int,int>mpp;
+
+        for(int i=0;i<n;i++){
+            int comp=target-nums[i];
+            if(mpp.find(comp)!=mpp.end()){
+                return {i,mpp[comp]};
+            }
+            else mpp[nums[i]]=i;
+        }
+        return {};
+    }
+};`,
       customTitle: 'Two Sum',
       customUrl: 'https://leetcode.com/problems/two-sum/',
-      associatedPattern: 'Hash Map',
-      difficulty: 'E',
-      confidence: 3,
-      solveTime: 0,
       timestamp: now - 86400000,
       loggedAt: now - 86400000
     },
-    demo_median_two_sorted_arrays: {
+    ext_medianoftwosortedarrays: {
       status: 'struggled',
-      note: 'The binary-search partition needs careful left and right boundary handling, especially for empty halves.',
-      tag: 'Edge case missed',
+      note: 'Hard question good to solve again',
+      tag: "Didn't understand problem",
+      code: `class Solution {
+public:
+    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
+        int n1=nums1.size();
+        int n2=nums2.size();
+        if (n1 > n2) {
+            return findMedianSortedArrays(nums2, nums1);
+        }
+        int l1,l2,r1,r2;
+        int low=0,high=n1;
+        while(low<=high){
+            int cnt1=(low+high)/2;
+            int cnt2=((n1+n2+1)/2)-cnt1;
+            l1=(cnt1==0)?INT_MIN:nums1[cnt1-1];
+            l2=(cnt2==0)?INT_MIN:nums2[cnt2-1];
+            r1=(cnt1==n1)?INT_MAX:nums1[cnt1];
+            r2=(cnt2==n2)?INT_MAX:nums2[cnt2];
+
+            if(l1<=r2 && l2<=r1){
+                if((n1+n2)%2==0){
+                    double result=(max(l1,l2)+min(r1,r2))/2.0;
+                    return result;
+                }
+                else return max(l1,l2);
+            }`,
       customTitle: 'Median of Two Sorted Arrays',
       customUrl: 'https://leetcode.com/problems/median-of-two-sorted-arrays/',
       associatedPattern: 'Binary Search',
-      difficulty: 'H',
-      confidence: 2,
-      solveTime: 0,
       timestamp: now,
       loggedAt: now
     }
@@ -136,6 +170,13 @@ function initialUserData(db) {
     data.pd_progress_v1 = defaultDemoProgress();
   }
   return data;
+}
+
+function seedProgressIfEmpty(user) {
+  user.data = user.data || {};
+  if (user.data.pd_progress_v1 && Object.keys(user.data.pd_progress_v1).length > 0) return false;
+  user.data.pd_progress_v1 = defaultDemoProgress();
+  return true;
 }
 
 function writeDb(db) {
@@ -359,6 +400,7 @@ const server = http.createServer((req, res) => {
       }
 
       const userId = Object.keys(userStore(db)).find(id => userStore(db)[id] === user);
+      if (seedProgressIfEmpty(user)) writeDb(db);
       const token = createSession(res, userId);
       sendJson(res, 200, {
         ok: true,
