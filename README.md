@@ -1,6 +1,6 @@
-# Pattern Desk
+# Leetcode Tracker
 
-Pattern Desk is a personal interview-preparation dashboard I built to turn scattered DSA practice into one feedback loop: choose a company, prioritize its repeated questions, track solves, record mistakes, revise patterns, monitor contests, and manage applications.
+Leetcode Tracker is a personal interview-preparation dashboard I built to turn scattered DSA practice into one feedback loop: choose a company, prioritize its repeated questions, track solves, record mistakes, revise patterns, monitor contests, and manage applications.
 
 It is a deliberately small vanilla HTML/CSS/JavaScript application with a tiny Node.js backend. The question catalog is split into `data/topics.json`, `data/problems.json`, and `data/companies.json`; personal state is stored in `db.json`; Gemini is used only for optional JARVIS briefings, code analysis, and company-prep suggestions.
 
